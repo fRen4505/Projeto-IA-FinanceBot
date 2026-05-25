@@ -1,5 +1,6 @@
 import { dockStart } from "@nlpjs/basic";
 import { operateDAO } from "./DAO.js";
+import { getTime } from "./Utils.js";
 
 const greetings = {
     "locale": "pt",
@@ -17,10 +18,8 @@ const greetings = {
             "oi"
         ],
         "answers": [
-            "Ola, estou bem, deseja algo?",
-            "Bom dia, como está, deseja algo?",
-            "Boa tarde, como está, deseja algo?",
-            "Boa noite, como está, deseja algo?"
+            "Ola, tudo bem?, deseja algo?",
+            `${getTime()}, como está, deseja algo?`,
         ]
     },]
 }
@@ -36,6 +35,8 @@ const loggon = {
             "me logga",
             "inicie",
             "comece a ver minhas financas",
+            "desejo que crie uma conta",
+            "crie uma conta"
         ],
         "answers": [
             "Ok",      //<-- NÃO ACRESCENTAR POIS JA SERA ALTERADA NO METODO response(msg) DO class Session
@@ -74,7 +75,8 @@ const receipt = {
             "me mostre",
             "quero ver",
             "desejo ver",
-            "meus gastos"
+            "meus gastos",
+            "exiba gastos"
         ],
         "answers": [
             "Ok",      //<-- NÃO ACRESCENTAR POIS JA SERA ALTERADA NO METODO response(msg) DO class Session
@@ -193,13 +195,12 @@ const farewell = {
 
 class Session {
 
-    constructor(insChat, insUsr) {
-        this.userAcc = insUsr
+    constructor(insChat) {
         this.chat = insChat
     }
 
-    async response(msg){
-            
+    async response(msg, usr){
+        
         this.chat.onIntent = async (nlp, input) => {
             const output = input;
             switch (input.intent) {
@@ -207,7 +208,7 @@ class Session {
                 case "criar-conta":
                     await operateDAO({
                         op: "createAcc",
-                        acc: this.userAcc,
+                        acc: usr,
                         data: ""
                     })
                     output.answer = "Esta feito, conta criada"
@@ -216,30 +217,28 @@ class Session {
                 case "criar-catego":
                     await operateDAO({
                         op: "createCat",
-                        acc: this.userAcc,
-                        data: msg.slice( msg.indexOf(':'), (msg.length-1))
+                        acc: usr,
+                        data: msg.slice( (msg.indexOf(':') + 1), (msg.length))
                     })
-                    output.answer = `Esta feito, categoria criada`
+                    output.answer = `Pronto, categoria criada`
                     break;
 
                 case "total":
                     const logConta = await operateDAO({
                         op: "checkAcc",
-                        acc: this.userAcc,
+                        acc: usr,
                         data: ""
                     })
-                    output.answer = `Esta feito, aqui estâo as informações: ${logConta}`
+                    output.answer = `Esta feito, aqui estâo as informações: \n${logConta}`
                     break;
 
                 case "atual":
-                    msg.forEach( async (obj) => {
-                        await operateDAO({
-                            op: "update",
-                            acc: this.userAcc,
-                            data: obj
-                        })
-                    });
-                    output.answer = `Esta feito, o extrato foi recebido e as informações atualizadas`
+                    await operateDAO({
+                        op: "update",
+                        acc: usr,
+                        data: msg
+                    })
+                    output.answer = `Pronto, o extrato foi recebido e as informações atualizadas`
                     break;
 
                 default: break;
