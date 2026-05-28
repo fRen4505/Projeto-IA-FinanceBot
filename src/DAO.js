@@ -69,7 +69,7 @@ export async function operateDAO(operation) {
                     total = (ct > 0) ? ct : 0
                 }
             }
-            await db.run( `UPDATE users SET total = ? WHERE nome = ?`, [newTotal, operation.acc])
+            await db.run( `UPDATE users SET total = ? WHERE nome = ?`, [total, operation.acc])
                 .catch(err => {throw err})
 
             for (const [catName, vals] of Object.entries(categObj)) {

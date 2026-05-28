@@ -2,7 +2,7 @@ import { Bot, BotError, GrammyError, HttpError } from "grammy";
 import { hydrateFiles } from "@grammyjs/files";
 import { SessionFactory } from "./BotNLP.js";
 
-const bot = new Bot("INSERIR CODIGO DE BOT TELEGRAM");  
+const bot = new Bot("INSIRA CODIGO DE TELEGRAM");  
 bot.api.config.use(hydrateFiles(bot.token));
 let chatBotSess
 

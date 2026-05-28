@@ -53,6 +53,7 @@ const create = {
             "adicione o campo:",
             "insira o campo:",
             "crie a categoria:",
+            "crie uma nova categoria",
             "adicione a categoria:",
             "insira a categoria:",
             "crie a dispesa:",
@@ -271,7 +272,7 @@ class Session {
                     throw new Error("Você ja enviou este arquivo ou similar");
                     break;
                 
-                case `Error: SQLITE_CONSTRAINT: UNIQUE constraint failed: u${usr}category.categonome`:
+                case `SQLITE_CONSTRAINT: UNIQUE constraint failed: u${usr}category.categonome`:
                     throw new Error("Você ja criou essa categoria");
                     break;
                 
@@ -285,6 +286,10 @@ class Session {
 
                 case 'read err':
                     throw new Error("Perdão, não consegui ler o arquivo enviado");
+                    break;
+
+                case 'unclear categ':
+                    throw new Error("Não entendi o nome da categoria, coloque : (dois pontos) antes do nome dela \nNão se esqueça de usar nomes claros e distintos");
                     break;
 
                 default:
