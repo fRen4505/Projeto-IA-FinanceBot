@@ -1,6 +1,6 @@
 import { dockStart } from "@nlpjs/basic";
 import { operateDAO } from "./DAO.js";
-import { getTime } from "./Utils.js";
+import { Process, getTime } from "./Utils.js";
 
 const greetings = {
     "locale": "pt",
@@ -73,6 +73,8 @@ const receipt = {
             "quero ver todos meus gastos",
             "quero ver minhas despesas",
             "me mostre",
+            "me mostre minha conta",
+            "exiba minha conta",
             "quero ver",
             "desejo ver",
             "meus gastos",
@@ -83,6 +85,8 @@ const receipt = {
         ]
     },]
 }
+
+
 
 const asking = {
     "locale": "pt",
@@ -106,7 +110,7 @@ const update = {            //<-- FEITO PURAMENTE PARA LOGICA DO RECEBIMENTO DE 
     "data": [{
         "intent": "atual",
         "utterances": [
-            "parse_de_extrato_concluido_atualizar_dados",
+            "./temp/file.csv",
         ],
         "answers": [       //<-- NÃO ACRESCENTAR POIS JA SERA ALTERADA NO METODO response(msg) DO class Session
             "Ok"
@@ -128,6 +132,7 @@ const thanking = {
         "answers": [
             "Que bom ter lhe ajudado",
             "Fico feliz ter ajudado",
+            "Denada"
         ]
     },]
 }
@@ -200,58 +205,95 @@ class Session {
     }
 
     async response(msg, usr){
-        
-        this.chat.onIntent = async (nlp, input) => {
-            const output = input;
-            switch (input.intent) {
-        
-                case "criar-conta":
-                    await operateDAO({
-                        op: "createAcc",
-                        acc: usr,
-                        data: ""
-                    })
-                    output.answer = "Esta feito, conta criada"
-                    break;
+        try {
+            this.chat.onIntent = async (nlp, input) => {
+                const output = input;
 
-                case "criar-catego":
-                    await operateDAO({
-                        op: "createCat",
-                        acc: usr,
-                        data: msg.slice( (msg.indexOf(':') + 1), (msg.length))
-                    })
-                    output.answer = `Pronto, categoria criada`
-                    break;
+                switch (input.intent) {
+                    case "criar-conta":
+                        const contaStatus = await operateDAO({
+                            op: "createAcc",
+                            acc: usr,
+                            data: ""
+                        })
+                        output.answer = `${ (contaStatus === 'Sucesso') ? `${contaStatus}, conta criada` : 'não foi possivel cadastrar'}`
+                        break;
 
-                case "total":
-                    const logConta = await operateDAO({
-                        op: "checkAcc",
-                        acc: usr,
-                        data: ""
-                    })
-                    output.answer = `Esta feito, aqui estâo as informações: \n${logConta}`
-                    break;
+                    case "criar-catego":
+                        if (msg.includes(':')) {
+                            const catStatus = await operateDAO({
+                                op: "createCat",
+                                acc: usr,
+                                data: msg.slice( (msg.indexOf(':') + 1), (msg.length))
+                            })
+                            output.answer = `${ (catStatus === 'Pronto') ? `${catStatus}, categoria criada` : 'não foi possivel criar'}`
+                        }else{
+                            throw new Error("unclear categ");
+                        }
+                        break;
 
-                case "atual":
-                    await operateDAO({
-                        op: "update",
-                        acc: usr,
-                        data: msg
-                    })
-                    output.answer = `Pronto, o extrato foi recebido e as informações atualizadas`
-                    break;
+                    case "total":
+                        const logConta = await operateDAO({
+                            op: "checkAcc",
+                            acc: usr,
+                            data: ""
+                        })
+                        output.answer = `${logConta}`
+                        break;
 
-                default: break;
+                    case "atual":
+                        const extraStatus = await operateDAO({
+                            op: "update",
+                            acc: usr,
+                            data: await Process(msg)
+                        })
+                        output.answer = `${ (extraStatus === 'Concluido') ? `${extraStatus}, extrato foi recebido e as informações atualizadas` : 'não foi possivel ler' }`
+                        break;
+                    default: break;
+                }
+                return input;
+
             }
-            return input;
-        }
-
-        if (typeof msg === 'object') {
-            return await this.chat.process("parse_de_extrato_concluido_atualizar_dados")
-        }else{
             return await this.chat.process(msg)
+
+        } catch (error) {
+            console.log(error)
+            switch (error.message) {
+                case `SQLITE_ERROR: no such table: u${usr}category`:
+                    throw new Error("Vocẽ não possui conta para poder criar uma categoria");
+                    break;
+
+                case `SQLITE_CONSTRAINT: UNIQUE constraint failed: users.nome`:
+                    throw new Error("Você ja possui uma conta cadastrada");
+                    break;
+
+                case `SQLITE_CONSTRAINT: UNIQUE constraint failed: u${usr}.id`:
+                    throw new Error("Você ja enviou este arquivo ou similar");
+                    break;
+                
+                case `Error: SQLITE_CONSTRAINT: UNIQUE constraint failed: u${usr}category.categonome`:
+                    throw new Error("Você ja criou essa categoria");
+                    break;
+                
+                case 'non op':
+                    throw new Error("Perdão, não foi possivel");
+                    break;
+                
+                case 'non .csv':
+                    throw new Error("Perdão, porem só interpreto e recebo arquivos .csv");
+                    break;
+
+                case 'read err':
+                    throw new Error("Perdão, não consegui ler o arquivo enviado");
+                    break;
+
+                default:
+                    throw new Error("Perdão, não entendi a mensagem");
+                    break;
+            }
         }
     }
+
 }
 
 export async function SessionFactory(insUsrProfil) {

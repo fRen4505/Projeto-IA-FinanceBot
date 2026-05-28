@@ -23,154 +23,165 @@ export async function operateDAO(operation) {
         );
     `)
 
+    async function createCateg(usr, catNam) {
+        await db.run(`INSERT INTO u${usr}category (categonome, valor, gastos, usercreator) VALUES(?,?,?,?)`,[catNam, 0, 0, usr]).catch(err => {throw err})
+    }
+
+    async function dataUpdate() {
+
+        try {
+            let categObj = {}
+                    
+            await db.all(`
+                SELECT * FROM u${operation.acc}category 
+                WHERE u${operation.acc}category.usercreator = ${operation.acc}
+            `).then( (row) => { 
+                row.forEach( cat => { categObj[`${cat.categonome}`] = [0, 0] }) 
+            }).catch(err => {throw err})
+
+            const extratos = await db.all(`
+                SELECT * FROM u${operation.acc}
+                WHERE usr = ${operation.acc}
+            `).catch(err => {throw err})
+
+            let total = 0
+            for (const extrat of extratos) {
+                if (typeof extrat.valor !== 'undefined') {
+                        
+                    const currVal = parseFloat(extrat.valor)
+                    const currInfo =  (extrat.info.includes('-')) ? extrat.info.split('-') : extrat.info
+                    const toUpdate = (currVal > 0) ? 1 : 0
+                            
+                    let matched = false
+                    for (const cat of Object.keys(categObj)) {
+                        const stratoVal = (typeof currInfo === 'object') ? currInfo[1] : currInfo
+
+                        if (stringSimilarity(stratoVal, cat) > 0.65) {
+                            matched = true
+                            categObj[cat][toUpdate] += currVal
+                        }
+                    }
+                    if (!matched) {
+                        categObj['outros'][toUpdate] += currVal  
+                    }
+                        
+                    const ct = currVal + total
+                    total = (ct > 0) ? ct : 0
+                }
+            }
+            await db.run( `UPDATE users SET total = ? WHERE nome = ?`, [newTotal, operation.acc])
+                .catch(err => {throw err})
+
+            for (const [catName, vals] of Object.entries(categObj)) {
+                await db.run(`
+                    UPDATE u${operation.acc}category 
+                    SET valor = ?, gastos = ? 
+                    WHERE categonome = ?
+                    `, [vals[1], vals[0], catName]
+                ).catch(err => {throw err})
+            }
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
     switch (operation.op) {
 
         case "createAcc":
-            await db.run(`INSERT INTO users (nome, total) VALUES(?,?)`, [operation.acc, 0])
-
-            await db.run(`
-                CREATE TABLE IF NOT EXISTS u${operation.acc} (
-                    insdata TEXT, 
-                    valor REAL, 
-                    id TEXT, 
-                    data TEXT, 
-                    info TEXT, 
-                    usr TEXT,
-                
-                    FOREIGN KEY( usr ) REFERENCES users(nome)
-                );
-            `)
-
-            await db.run(`
-                CREATE TABLE IF NOT EXISTS u${operation.acc}category (
-                    categonome TEXT PRIMARY KEY UNIQUE,
-                    valor REAL,
-                    usercreator TEXT,
+            try {
+                await db.run(`
+                    CREATE TABLE IF NOT EXISTS u${operation.acc} (
+                        insdata TEXT, 
+                        valor REAL, 
+                        id TEXT UNIQUE,
+                        data TEXT, 
+                        info TEXT, 
+                        usr TEXT,
                     
-                    FOREIGN KEY( usercreator ) REFERENCES users(nome)
-                );
-            `)
+                        FOREIGN KEY( usr ) REFERENCES users(nome)
+                    );
+                `)
 
-            await db.run(`
-                INSERT INTO u${operation.acc}category (categonome, valor, usercreator) VALUES(?,?,?)`
-                ,["outros", 0, operation.acc]
-            )
-            await db.close();
+                await db.run(`
+                    CREATE TABLE IF NOT EXISTS u${operation.acc}category (
+                        categonome TEXT PRIMARY KEY UNIQUE,
+                        valor REAL,
+                        gastos REAL,
+                        usercreator TEXT,
+                        
+                        FOREIGN KEY( usercreator ) REFERENCES users(nome)
+                    );
+                `)
+
+                await db.run(`INSERT INTO users (nome, total) VALUES(?,?)`, [operation.acc, 0])
+                    .catch(err => {throw err})
+
+                await createCateg(operation.acc, 'outros')
+                return 'Sucesso';
+
+            } catch (error) {
+                throw error;
+            }
             break;
     
         case "createCat":
-            await db.run(
-                `INSERT INTO u${operation.acc}category (categonome, valor, usercreator) VALUES(?,?,?)`
-                ,[operation.data, 0, operation.acc]
-            )
-            await db.close();
+            try {
+                await createCateg(operation.acc, operation.data)
+                await dataUpdate()
+                return 'Pronto';
+            } catch (error) {
+                throw error
+            }
             break;
         
         case "checkAcc":
-            let infos =  await db.get(
-                `SELECT total FROM users WHERE users.nome = ?`,[operation.acc]
-            ).then( (info) => {
-                return `total: ${info.total} \n`
-            })
+            try {
+                let infos = await db.get( `SELECT * FROM users WHERE users.nome = ?`, [operation.acc])
+                    .then( (usr) => { return `total: ${usr.total}\ncategorias:\n`})
+                    .catch(err => {throw err})
 
-            //  lista de extratos:
-            //  LEFT JOIN ${operation.acc} ON users.nome = ${operation.acc}.usr
+                await db.each(`
+                    SELECT * FROM u${operation.acc}category
+                    WHERE u${operation.acc}category.usercreator = ${operation.acc}
+                `, (err, row) => {
+                    infos = infos + `${row.categonome} | Recebidos: ${row.valor} | Gastos: ${row.gastos}\n`;
+                })
 
-            await db.each(`
-                SELECT * FROM u${operation.acc}category
-                WHERE u${operation.acc}category.usercreator = ${operation.acc}
-            `, (err, row) => {
-                infos = infos + `${row.categonome} | ${row.valor} \n`;
-            })
-
-            return infos;
+                return infos;
+            } catch (error) {
+                throw error 
+            }
             break;
         
         case "update":
-        
-            const estratos = await db.prepare(`INSERT INTO u${operation.acc} VALUES (?,?,?,?,?,?)`)
-            operation.data.forEach( (obj) => {
-                const localDate = new Date()
-                if (typeof obj.Valor !== 'undefined') {
-                    estratos.run(
-                        localDate.toLocaleDateString(), 
-                        parseFloat(obj.Valor), 
-                        obj.Identificador,
-                        obj.Data,
-                        obj['Descrição'],
-                        operation.acc
-                    )
-                }
-            })
-            await estratos.finalize()
-
-            const categoryStack = await db.all(`
-                SELECT * FROM u${operation.acc}category 
-                WHERE u${operation.acc}category.usercreator = ${operation.acc}
-            `).then( (row) =>{ return row })
-
-            const rows = await db.all(`
-                SELECT * FROM u${operation.acc}
-                WHERE usr = ${operation.acc}
-            `)
-            for (const row of rows) {                               //FOR EACH DOS EXTRATOS DO USUARIO
-                const extratoInfo = (row.info.includes('-')) ? row.info.split('-') : row.info
-                const currVal = parseFloat(row.valor)
-                
-                let matched = false
-                for (const cat of categoryStack) {                  //FOR DAS CATEGORIAS E SEUS VALORES ANTERIORES
-                    
-                    const stratoVal = (typeof extratoInfo === 'object') ? extratoInfo[1] : extratoInfo
-                    if (stringSimilarity(stratoVal, cat.categonome) > 0.65) {
-                        let matched = true
-
-                        const newVal = await db.get(
-                            `SELECT valor FROM u${operation.acc}category WHERE categonome = ? `
-                        ,[cat.categonome]).then( (prev) => {
-                            const op = currVal + parseFloat(prev.valor)
-                            return (op > 0) ? op : 0
-                        })
-
-                        await db.run(`
-                            UPDATE u${operation.acc}category
-                            SET valor = ?
-                            WHERE categonome = ?
-                        `, [newVal, cat.categonome])
+            try {
+                for (const extrat of operation.data) {
+                    if (typeof extrat.Valor !== 'undefined') {
+                        const localDate = new Date()
+                        await db.run(
+                            `INSERT INTO u${operation.acc} VALUES (?,?,?,?,?,?)`, [
+                                localDate.toLocaleDateString(), 
+                                parseFloat(extrat.Valor), 
+                                extrat.Identificador, 
+                                extrat.Data, 
+                                extrat['Descrição'], 
+                                operation.acc
+                            ]
+                        ).catch(err => {throw err})
                     }
                 }
-                if(!matched){
 
-                    const newVal = await db.get(
-                        `SELECT valor FROM u${operation.acc}category WHERE categonome = 'outros' `
-                    ).then( (prev) => {
-                        const op = currVal + parseFloat(prev.valor)
-                        return (op > 0) ? op : 0
-                    })
+                await dataUpdate();
+                return 'Concluido';
 
-                    await db.run(`
-                        UPDATE u${operation.acc}category
-                        SET valor = ?
-                        WHERE categonome = 'outros'
-                    `, [newVal])
-                }
-
-                const newTotal = await db.get(
-                    `SELECT total FROM users WHERE nome = ?`
-                ,[operation.acc]).then( (prevTotal) => {
-                    const ot = currVal + parseFloat(prevTotal.total)
-                    return (ot > 0) ? ot : 0
-                })
-                
-                await db.run(`
-                    UPDATE users
-                    SET total = ?
-                    WHERE nome = ?
-                `, [newTotal, operation.acc])
-                
+            } catch (error) {
+                throw error;
             }
             break;
         
         default:
+            throw new Error("non op");
             break;
     }
 }
