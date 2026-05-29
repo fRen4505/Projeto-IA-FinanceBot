@@ -15,11 +15,22 @@ const greetings = {
             "boa noite",
             "bao",
             "ow",
-            "oi"
+            "oi",
+            "e ai",
+            "salve",
+            "olá, como vai?",
+            "saudações",
+            "ei",
+            "fala",
+            "tudo certo?",
+            "como você está?"
         ],
         "answers": [
-            "Ola, tudo bem? deseja algo?",
+            "Olá, tudo bem? deseja algo?",
             `${getTime()}, como está, deseja algo?`,
+            "Oi! Em que posso ajudar hoje?",
+            "Olá! Como posso ser útil?",
+            "E aí! Tudo tranquilo?"
         ]
     },]
 }
@@ -36,7 +47,14 @@ const loggon = {
             "inicie",
             "comece a ver minhas financas",
             "desejo que crie uma conta",
-            "crie uma conta"
+            "crie uma conta",
+            "quero me registrar",
+            "fazer meu cadastro",
+            "abrir uma conta",
+            "registrar uma nova conta",
+            "quero criar um perfil",
+            "me ajude a cadastrar",
+            "novo usuário"
         ],
         "answers": [
             "Ok",      //<-- NÃO ACRESCENTAR POIS JA SERA ALTERADA NO METODO response(msg) DO class Session
@@ -59,6 +77,14 @@ const create = {
             "crie a dispesa:",
             "adicione a dispesa:",
             "insira a dispesa:",
+            "quero criar um novo item:",
+            "nova despesa:",
+            "adicionar gasto:",
+            "registrar categoria:",
+            "criar novo registro:",
+            "incluir despesa:",
+            "cadastrar categoria:",
+            "novo campo para despesas:"
         ],
         "answers": [
             "Ok",      //<-- NÃO ACRESCENTAR POIS JA SERA ALTERADA NO METODO response(msg) DO class Session
@@ -79,7 +105,14 @@ const receipt = {
             "quero ver",
             "desejo ver",
             "meus gastos",
-            "exiba gastos"
+            "exiba gastos",
+            "ver extrato completo",
+            "quais são minhas despesas?",
+            "resumo financeiro",
+            "mostrar meu balanço",
+            "ver meu histórico de gastos",
+            "quanto gastei?",
+            "minhas finanças"
         ],
         "answers": [
             "Ok",      //<-- NÃO ACRESCENTAR POIS JA SERA ALTERADA NO METODO response(msg) DO class Session
@@ -100,9 +133,17 @@ const asking = {
             "atualize minhas despesas",
             "atualize meus gastos",
             "atualize as informacoes",
+            "importar extrato",
+            "fazer upload do extrato",
+            "enviar extrato",
+            "sincronizar dados",
+            "atualizar informações financeiras",
+            "processar extrato"
         ],
-        "answers": [ 
-            "Ok, sem problemas, me mande o arquivo nome_do_arquivo.csv do extrato, não mande .pdf ou outro tipo"
+        "answers": [
+            "Ok, sem problemas, me mande o arquivo nome_do_arquivo.csv do extrato, não mande .pdf ou outro tipo",
+            "Certo, por favor, envie o arquivo .csv do seu extrato. Não aceito outros formatos como .pdf.",
+            "Entendido. Para atualizar, preciso do seu extrato em formato .csv. Por favor, evite .pdf ou outros tipos."
         ]
     },]
 }
@@ -129,12 +170,23 @@ const thanking = {
             "isso mesmo",
             "ta certo",
             "sou grato",
-            "so isso mesmo"
+            "so isso mesmo",
+            "muito obrigado",
+            "agradecido",
+            "valeu",
+            "grato",
+            "excelente",
+            "perfeito",
+            "muito bom",
+            "obrigadão"
         ],
         "answers": [
             "Que bom ter lhe ajudado",
             "Fico feliz ter ajudado",
-            "Denada"
+            "Denada",
+            "De nada! Sempre à disposição.",
+            "Disponha! Se precisar de mais algo, é só chamar.",
+            "Por nada! Fico feliz em ser útil."
         ]
     },]
 }
@@ -148,11 +200,21 @@ const complaining = {
             "errou",
             "nao ta certo",
             "faltou coisa",
-            "nao esta correto"
+            "nao esta correto",
+            "isso não está certo",
+            "você cometeu um erro",
+            "está incorreto",
+            "algo deu errado",
+            "não é bem assim",
+            "isso está errado",
+            "você errou aqui"
         ],
         "answers": [
             "Perdão pelo erro",
             "Desculpe-me pelo erro",
+            "Peço desculpas pelo engano.",
+            "Sinto muito, vou corrigir isso.",
+            "Minhas desculpas, vou verificar."
         ]
     },]
 }
@@ -172,6 +234,13 @@ const offending = {
             "viado",
             "desgraçado",
             "cala boca",
+            "idiota",
+            "imbecil",
+            "estúpido",
+            "babaca",
+            "palhaço",
+            "merda",
+            "cabeça de vento"
         ],
         "answers": [
             "🖕"
@@ -188,13 +257,24 @@ const farewell = {
             "vou sair",
             "tenho que ir",
             "tenho que sair",
-            "por enquanto é so isso"
+            "por enquanto é so isso",
+            "até logo",
+            "tchau",
+            "adeus",
+            "fui",
+            "até a próxima",
+            "meu expediente acabou",
+            "preciso ir agora",
+            "até mais tarde"
         ],
         "answers": [
             "Até mais, espero ter ajudado",
             "Até outro momento",
             "Ok então, até mais, espero ter sido util",
-            "Ok então, até mais, estou sempre disponivel para quando necessitar"
+            "Ok então, até mais, estou sempre disponivel para quando necessitar",
+            "Tchau! Volte sempre que precisar.",
+            "Até logo! Foi um prazer ajudar.",
+            "Adeus! Tenha um ótimo dia."
         ]
     },]
 
