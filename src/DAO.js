@@ -145,7 +145,7 @@ export async function operateDAO(operation) {
                     SELECT * FROM u${operation.acc}category
                     WHERE u${operation.acc}category.usercreator = ${operation.acc}
                 `, (err, row) => {
-                    infos = infos + `${row.categonome} | Recebidos: ${row.valor} | Gastos: ${row.gastos}\n`;
+                    infos = infos + `=>${row.categonome} | Recebidos: ${row.valor} | Gastos: ${row.gastos}\n`;
                 })
 
                 return infos;

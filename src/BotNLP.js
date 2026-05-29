@@ -18,7 +18,7 @@ const greetings = {
             "oi"
         ],
         "answers": [
-            "Ola, tudo bem?, deseja algo?",
+            "Ola, tudo bem? deseja algo?",
             `${getTime()}, como está, deseja algo?`,
         ]
     },]
@@ -95,6 +95,7 @@ const asking = {
         "intent": "extrato",
         "utterances": [
             "receba meu extrato",
+            "receba meus extratos",
             "atualize meus dados",
             "atualize minhas despesas",
             "atualize meus gastos",

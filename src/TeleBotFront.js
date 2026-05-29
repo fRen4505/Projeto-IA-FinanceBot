@@ -2,7 +2,7 @@ import { Bot, BotError, GrammyError, HttpError } from "grammy";
 import { hydrateFiles } from "@grammyjs/files";
 import { SessionFactory } from "./BotNLP.js";
 
-const bot = new Bot("INSIRA CODIGO DE TELEGRAM");  
+const bot = new Bot("INSERIR CODIGO DE BOT");  
 bot.api.config.use(hydrateFiles(bot.token));
 let chatBotSess
 
@@ -22,7 +22,6 @@ bot.on('message:text', async (ctx) => {
 bot.on("message:document", async (ctx) => {
     try {
         const file = await ctx.getFile();
-        
         const path = await file.download(
             `./temp/${file.file_path.slice(
                 file.file_path.indexOf('/')+1,
