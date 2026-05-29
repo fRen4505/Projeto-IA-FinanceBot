@@ -2,7 +2,7 @@ import { Bot, BotError, GrammyError, HttpError } from "grammy";
 import { hydrateFiles } from "@grammyjs/files";
 import { SessionFactory } from "./BotNLP.js";
 
-const bot = new Bot("8515018974:AAFpaWvvsxbzZXjWSddWlqHdaKPiSrabzPU");  
+const bot = new Bot("INSERIR CODIGO BOT TELEGRAM");  
 bot.api.config.use(hydrateFiles(bot.token));
 let chatBotSess
 
@@ -10,10 +10,10 @@ bot.command("start", async (ctx) => {
     chatBotSess = await SessionFactory()
     await ctx.reply(`
         ⚠️Atenção: 
-            - Seja claro e curto nos pedidos;
-            - Na criação de categorias/dispesas sempre use : (dois pontos) antes do nome da categoria 
-            - Escolha um nome distinto para suas categorias, de preferência composto ou nome com sobre nome;
-            - Evite erros de escrita ao maximo
+         -Seja claro e curto nos pedidos;
+         -Na criação de categorias/dispesas sempre use : (dois pontos) antes do nome da categoria 
+         -Escolha um nome distinto para suas categorias, de preferência composto ou nome com sobre nome;
+         -Evite erros de escrita ao maximo
     `)
 });
 
