@@ -120,7 +120,20 @@ const receipt = {
     },]
 }
 
-
+const remove = {
+    "locale": "pt",
+    "data": [{
+        "intent": "remove",
+        "utterances": [
+            "remova categoria",
+            "exclua categoria",
+            "tire a dispesa",
+        ],
+        "answers": [
+            "Ok",      //<-- NÃO ACRESCENTAR POIS JA SERA ALTERADA NO METODO response(msg) DO class Session
+        ]
+    },]
+}
 
 const asking = {
     "locale": "pt",
@@ -314,6 +327,23 @@ class Session {
                         }
                         break;
 
+                    case "remove":
+                        if (msg.includes(':')) {
+                            const toRemove = msg.slice( (msg.indexOf(':') + 1), (msg.length)).trim()
+                            if (toRemove === 'outros') { throw new Error("ilegal remove categ"); }
+                            else{
+                                const catStatus = await operateDAO({
+                                    op: "removeCat",
+                                    acc: usr,
+                                    data: toRemove
+                                })
+                                output.answer = `${ (catStatus === 'Pronto') ? `${catStatus}, categoria removida` : 'não foi possivel remover'}`
+                            }
+                        }else{
+                            throw new Error("unclear remov categ");
+                        }
+                        break;
+
                     case "total":
                         const logConta = await operateDAO({
                             op: "checkAcc",
@@ -373,6 +403,14 @@ class Session {
                     throw new Error("Não entendi o nome da categoria, coloque : (dois pontos) antes do nome dela \nNão se esqueça de usar nomes claros e distintos");
                     break;
 
+                case 'unclear remov categ':
+                    throw new Error("Não entendi o nome da categoria, coloque : (dois pontos) antes do nome dela");
+                    break;
+
+                case 'ilegal remove categ':
+                    throw new Error("Não se pode deletar esta categoria");
+                    break;
+
                 default:
                     throw new Error("Perdão, não entendi a mensagem");
                     break;
@@ -392,6 +430,7 @@ export async function SessionFactory(insUsrProfil) {
     nlp.addCorpus(loggon);
     nlp.addCorpus(create);
     nlp.addCorpus(receipt);
+    nlp.addCorpus(remove);
     nlp.addCorpus(update);
     nlp.addCorpus(asking);
     nlp.addCorpus(thanking);

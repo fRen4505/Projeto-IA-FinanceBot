@@ -24,7 +24,8 @@ export async function operateDAO(operation) {
     `)
 
     async function createCateg(usr, catNam) {
-        await db.run(`INSERT INTO u${usr}category (categonome, valor, gastos, usercreator) VALUES(?,?,?,?)`,[catNam, 0, 0, usr]).catch(err => {throw err})
+        await db.run(`INSERT INTO u${usr}category (categonome, valor, gastos, usercreator) VALUES(?,?,?,?)`,[catNam.trim(), 0, 0, usr])
+            .catch(err => {throw err})
     }
 
     async function dataUpdate() {
@@ -54,9 +55,10 @@ export async function operateDAO(operation) {
                             
                     let matched = false
                     for (const cat of Object.keys(categObj)) {
-                        const stratoVal = (typeof currInfo === 'object') ? currInfo[1] : currInfo
+                        const op = (typeof currInfo === 'object') ? currInfo[1] : currInfo
+                        const ou = (typeof currInfo === 'object') ? currInfo[0] : currInfo
 
-                        if (stringSimilarity(stratoVal, cat) > 0.65) {
+                        if (stringSimilarity(op, cat) > 0.65 || ou.includes(cat) || op.includes(cat)) {
                             matched = true
                             categObj[cat][toUpdate] += currVal
                         }
@@ -128,6 +130,19 @@ export async function operateDAO(operation) {
         case "createCat":
             try {
                 await createCateg(operation.acc, operation.data)
+                await dataUpdate()
+                return 'Pronto';
+            } catch (error) {
+                throw error
+            }
+            break;
+
+        case "removeCat":
+            try {
+                await db.run(`
+                    DELETE FROM u${operation.acc}category 
+                    WHERE u${operation.acc}category.categonome = ?`, [operation.data.trim()]
+                ).catch(err => {throw err})
                 await dataUpdate()
                 return 'Pronto';
             } catch (error) {
