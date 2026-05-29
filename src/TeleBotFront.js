@@ -8,6 +8,14 @@ let chatBotSess
 
 bot.command("start", async (ctx) => {
     chatBotSess = await SessionFactory()
+    await ctx.reply(`
+        Esse é o Finance-Bot💰, bot de assistência/listagem financeira simples, capaz de receber arquivos .csv e distinguir de acordo com categorias criadas pelo usuário.
+        ⚠️Atenção: 
+            - Seja claro e curto nos pedidos;
+            - Na criação de categorias/dispesas sempre use : (dois pontos) antes do nome da categoria 
+            - Escolha um nome distinto para suas categorias, de preferência composto ou nome com sobre nome;
+            - Evite erros de escrita ao maximo
+    `)
 });
 
 bot.on('message:text', async (ctx) => {
